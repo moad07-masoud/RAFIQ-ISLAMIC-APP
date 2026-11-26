@@ -171,6 +171,12 @@ fun RafiqHome() {
                             )
                         }
 
+                        "الأدعية" -> {
+                            DuaScreen(
+                                onBack = { page = "الرئيسية" }
+                            )
+                        }
+
                         else -> {
                             SectionPage(
                                 page = page,
