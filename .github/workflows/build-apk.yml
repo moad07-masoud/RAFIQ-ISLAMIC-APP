@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - full-update
 
 jobs:
   build:
@@ -34,4 +33,3 @@ jobs:
         with:
           name: RAFIQ-APK
           path: app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
