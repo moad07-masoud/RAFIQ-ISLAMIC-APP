@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.batoulapps.adhan.CalculationMethod
 import com.batoulapps.adhan.Coordinates
-import com.batoulapps.adhan.DateComponents
+import com.batoulapps.adhan.data.DateComponents
 import com.batoulapps.adhan.Madhab
 import com.batoulapps.adhan.PrayerTimes
 import java.text.SimpleDateFormat
@@ -35,7 +35,7 @@ private val Gold = Color(0xFFD6B56D)
 private val Cream = Color(0xFFF7F4EA)
 private val LightGreen = Color(0xFF0B6650)
 
-private data class PrayerItem(
+data class PrayerItem(
     val name: String,
     val time: Date
 )
@@ -55,7 +55,7 @@ private fun calculateTripoliPrayers(): List<PrayerItem> {
     val parameters =
         CalculationMethod.MUSLIM_WORLD_LEAGUE.getParameters()
 
-    // Standard Asr shadow ratio 1 (Maliki/Shafi'i)
+    // Standard Asr shadow ratio 1
     parameters.madhab = Madhab.SHAFI
 
     val prayers = PrayerTimes(coordinates, date, parameters)
