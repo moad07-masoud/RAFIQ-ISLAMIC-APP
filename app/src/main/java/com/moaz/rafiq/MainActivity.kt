@@ -128,23 +128,35 @@ fun RafiqHome() {
                         .fillMaxWidth()
                         .verticalScroll(rememberScrollState())
                 ) {
-                    if (page == "الرئيسية") {
-                        HomePage(
-                            prayers = prayers,
-                            onOpen = { page = it }
-                        )
-                    } else if (page == "القرآن الكريم") {
-                        QuranScreen(
-                            onBack = { page = "الرئيسية" }
-                        )
-                    } else {
-                        SectionPage(
-                            page = page,
-                            count = count,
-                            onBack = { page = "الرئيسية" },
-                            onIncrease = { count++ },
-                            onReset = { count = 0 }
-                        )
+                    when (page) {
+                        "الرئيسية" -> {
+                            HomePage(
+                                prayers = prayers,
+                                onOpen = { page = it }
+                            )
+                        }
+
+                        "القرآن الكريم" -> {
+                            QuranScreen(
+                                onBack = { page = "الرئيسية" }
+                            )
+                        }
+
+                        "الأذكار" -> {
+                            AzkarScreen(
+                                onBack = { page = "الرئيسية" }
+                            )
+                        }
+
+                        else -> {
+                            SectionPage(
+                                page = page,
+                                count = count,
+                                onBack = { page = "الرئيسية" },
+                                onIncrease = { count++ },
+                                onReset = { count = 0 }
+                            )
+                        }
                     }
                 }
 
@@ -298,6 +310,7 @@ fun HomePage(
                 }
             }
         }
+
         Spacer(modifier = Modifier.height(10.dp))
     }
 }
