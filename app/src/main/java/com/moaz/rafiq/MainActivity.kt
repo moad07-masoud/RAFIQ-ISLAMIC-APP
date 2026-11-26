@@ -3,7 +3,6 @@ package com.moaz.rafiq
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -144,6 +143,18 @@ fun RafiqHome() {
 
                         "الأذكار" -> {
                             AzkarScreen(
+                                onBack = { page = "الرئيسية" }
+                            )
+                        }
+
+                        "القبلة" -> {
+                            QiblaScreen(
+                                onBack = { page = "الرئيسية" }
+                            )
+                        }
+
+                        "التلاوة" -> {
+                            QuranAudioScreen(
                                 onBack = { page = "الرئيسية" }
                             )
                         }
@@ -292,8 +303,9 @@ fun HomePage(
 
     val rows = listOf(
         listOf("مواقيت الصلاة", "القبلة"),
-        listOf("القرآن الكريم", "الأذكار"),
-        listOf("المسبحة", "الإعدادات")
+        listOf("القرآن الكريم", "التلاوة"),
+        listOf("الأذكار", "المسبحة"),
+        listOf("الإعدادات", "الأدعية")
     )
 
     rows.forEach { row ->
