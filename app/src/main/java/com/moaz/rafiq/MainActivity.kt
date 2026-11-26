@@ -55,7 +55,6 @@ private fun calculateTripoliPrayers(): List<PrayerItem> {
     val parameters =
         CalculationMethod.MUSLIM_WORLD_LEAGUE.getParameters()
 
-    // Standard Asr shadow ratio 1
     parameters.madhab = Madhab.SHAFI
 
     val prayers = PrayerTimes(coordinates, date, parameters)
@@ -133,6 +132,10 @@ fun RafiqHome() {
                         HomePage(
                             prayers = prayers,
                             onOpen = { page = it }
+                        )
+                    } else if (page == "القرآن الكريم") {
+                        QuranScreen(
+                            onBack = { page = "الرئيسية" }
                         )
                     } else {
                         SectionPage(
