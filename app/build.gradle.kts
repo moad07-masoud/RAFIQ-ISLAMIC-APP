@@ -45,7 +45,7 @@ dependencies {
     implementation("com.batoulapps.adhan:adhan:1.2.1")
 
     // تحديد موقع الهاتف
-    implementation("com.google.android.gms:play-services-location:21.4.0")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 
     // تشغيل القرآن والأذان
     implementation("androidx.media3:media3-exoplayer:1.5.1")
