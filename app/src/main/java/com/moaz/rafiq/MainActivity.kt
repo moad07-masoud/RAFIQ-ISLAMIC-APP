@@ -165,6 +165,12 @@ fun RafiqHome() {
                             )
                         }
 
+                        "الحديث اليومي" -> {
+                            HadithScreen(
+                                onBack = { page = "الرئيسية" }
+                            )
+                        }
+
                         else -> {
                             SectionPage(
                                 page = page,
