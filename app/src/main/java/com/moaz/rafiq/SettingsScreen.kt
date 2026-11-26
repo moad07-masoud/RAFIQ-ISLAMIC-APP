@@ -79,6 +79,9 @@ fun SettingsScreen(onBack: () -> Unit) {
 
         if (granted) {
             createPrayerNotificationChannel(context)
+            PrayerNotificationScheduler.scheduleNext(context)
+        } else {
+            PrayerNotificationScheduler.cancel(context)
         }
     }
 
@@ -186,6 +189,8 @@ fun SettingsScreen(onBack: () -> Unit) {
                                         false
                                     )
                                     .apply()
+
+                                PrayerNotificationScheduler.cancel(context)
                             } else {
                                 if (Build.VERSION.SDK_INT >= 33) {
                                     val permissionGranted =
@@ -205,6 +210,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                                             .apply()
 
                                         createPrayerNotificationChannel(context)
+                                        PrayerNotificationScheduler.scheduleNext(context)
                                     } else {
                                         permissionLauncher.launch(
                                             Manifest.permission.POST_NOTIFICATIONS
@@ -221,6 +227,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                                         .apply()
 
                                     createPrayerNotificationChannel(context)
+                                    PrayerNotificationScheduler.scheduleNext(context)
                                 }
                             }
                         }
