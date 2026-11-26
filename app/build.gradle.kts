@@ -1,4 +1,3 @@
-
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -36,10 +35,20 @@ dependencies {
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.activity:activity-compose:1.9.3")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
+
+    // حساب مواقيت الصلاة والقبلة
+    implementation("com.batoulapps.adhan:adhan:1.2.1")
+
+    // تحديد موقع الهاتف
+    implementation("com.google.android.gms:play-services-location:21.4.0")
+
+    // تشغيل القرآن والأذان
+    implementation("androidx.media3:media3-exoplayer:1.5.1")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
