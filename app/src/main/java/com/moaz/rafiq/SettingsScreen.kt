@@ -1,6 +1,13 @@
 package com.moaz.rafiq
 
+import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -12,10 +19,31 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 
 private val SettingsGreen = Color(0xFF064E3B)
 private val SettingsGold = Color(0xFFD6B56D)
 private val SettingsCream = Color(0xFFF7F4EA)
+
+private const val PRAYER_CHANNEL_ID = "rafiq_prayer_notifications"
+
+private fun createPrayerNotificationChannel(context: Context) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val channel = NotificationChannel(
+            PRAYER_CHANNEL_ID,
+            "إشعارات الصلاة",
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = "تنبيهات مواقيت الصلاة من تطبيق رفيق"
+        }
+
+        val manager = context.getSystemService(
+            Context.NOTIFICATION_SERVICE
+        ) as NotificationManager
+
+        manager.createNotificationChannel(channel)
+    }
+}
 
 @Composable
 fun SettingsScreen(onBack: () -> Unit) {
@@ -36,8 +64,22 @@ fun SettingsScreen(onBack: () -> Unit) {
 
     var notificationsEnabled by remember {
         mutableStateOf(
-            preferences.getBoolean("notifications_enabled", true)
+            preferences.getBoolean("notifications_enabled", false)
         )
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        notificationsEnabled = granted
+
+        preferences.edit()
+            .putBoolean("notifications_enabled", granted)
+            .apply()
+
+        if (granted) {
+            createPrayerNotificationChannel(context)
+        }
     }
 
     Column(
@@ -126,7 +168,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                         )
 
                         Text(
-                            text = "تفعيل أو إيقاف خيار الإشعارات",
+                            text = "السماح للتطبيق بإرسال الإشعارات",
                             color = SettingsGreen,
                             fontSize = 12.sp
                         )
@@ -134,11 +176,53 @@ fun SettingsScreen(onBack: () -> Unit) {
 
                     Switch(
                         checked = notificationsEnabled,
-                        onCheckedChange = {
-                            notificationsEnabled = it
-                            preferences.edit()
-                                .putBoolean("notifications_enabled", it)
-                                .apply()
+                        onCheckedChange = { enabled ->
+                            if (!enabled) {
+                                notificationsEnabled = false
+
+                                preferences.edit()
+                                    .putBoolean(
+                                        "notifications_enabled",
+                                        false
+                                    )
+                                    .apply()
+                            } else {
+                                if (Build.VERSION.SDK_INT >= 33) {
+                                    val permissionGranted =
+                                        ContextCompat.checkSelfPermission(
+                                            context,
+                                            Manifest.permission.POST_NOTIFICATIONS
+                                        ) == PackageManager.PERMISSION_GRANTED
+
+                                    if (permissionGranted) {
+                                        notificationsEnabled = true
+
+                                        preferences.edit()
+                                            .putBoolean(
+                                                "notifications_enabled",
+                                                true
+                                            )
+                                            .apply()
+
+                                        createPrayerNotificationChannel(context)
+                                    } else {
+                                        permissionLauncher.launch(
+                                            Manifest.permission.POST_NOTIFICATIONS
+                                        )
+                                    }
+                                } else {
+                                    notificationsEnabled = true
+
+                                    preferences.edit()
+                                        .putBoolean(
+                                            "notifications_enabled",
+                                            true
+                                        )
+                                        .apply()
+
+                                    createPrayerNotificationChannel(context)
+                                }
+                            }
                         }
                     )
                 }
