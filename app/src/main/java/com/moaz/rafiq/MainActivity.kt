@@ -159,6 +159,12 @@ fun RafiqHome() {
                             )
                         }
 
+                        "أسماء الله الحسنى" -> {
+                            AllahNamesScreen(
+                                onBack = { page = "الرئيسية" }
+                            )
+                        }
+
                         else -> {
                             SectionPage(
                                 page = page,
@@ -305,7 +311,8 @@ fun HomePage(
         listOf("مواقيت الصلاة", "القبلة"),
         listOf("القرآن الكريم", "التلاوة"),
         listOf("الأذكار", "المسبحة"),
-        listOf("الإعدادات", "الأدعية")
+        listOf("الإعدادات", "الأدعية"),
+        listOf("أسماء الله الحسنى", "الحديث اليومي")
     )
 
     rows.forEach { row ->
