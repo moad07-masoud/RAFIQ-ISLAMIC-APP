@@ -224,3 +224,12 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
         }
     }
 }
+
+class PrayerBootReceiver : BroadcastReceiver() {
+
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
+            PrayerNotificationScheduler.scheduleNext(context)
+        }
+    }
+}
