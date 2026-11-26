@@ -177,6 +177,12 @@ fun RafiqHome() {
                             )
                         }
 
+                        "الإعدادات" -> {
+                            SettingsScreen(
+                                onBack = { page = "الرئيسية" }
+                            )
+                        }
+
                         else -> {
                             SectionPage(
                                 page = page,
