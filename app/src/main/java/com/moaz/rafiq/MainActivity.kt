@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,15 +19,67 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.batoulapps.adhan.CalculationMethod
+import com.batoulapps.adhan.Coordinates
+import com.batoulapps.adhan.DateComponents
+import com.batoulapps.adhan.Madhab
+import com.batoulapps.adhan.PrayerTimes
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 private val Emerald = Color(0xFF064E3B)
 private val Gold = Color(0xFFD6B56D)
 private val Cream = Color(0xFFF7F4EA)
 private val LightGreen = Color(0xFF0B6650)
 
+private data class PrayerItem(
+    val name: String,
+    val time: Date
+)
+
+private fun calculateTripoliPrayers(): List<PrayerItem> {
+    val zone = TimeZone.getTimeZone("Africa/Tripoli")
+    val calendar = Calendar.getInstance(zone)
+
+    val date = DateComponents(
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH) + 1,
+        calendar.get(Calendar.DAY_OF_MONTH)
+    )
+
+    val coordinates = Coordinates(32.8872, 13.1913)
+
+    val parameters =
+        CalculationMethod.MUSLIM_WORLD_LEAGUE.getParameters()
+
+    // Standard Asr shadow ratio 1 (Maliki/Shafi'i)
+    parameters.madhab = Madhab.SHAFI
+
+    val prayers = PrayerTimes(coordinates, date, parameters)
+
+    return listOf(
+        PrayerItem("الفجر", prayers.fajr),
+        PrayerItem("الشروق", prayers.sunrise),
+        PrayerItem("الظهر", prayers.dhuhr),
+        PrayerItem("العصر", prayers.asr),
+        PrayerItem("المغرب", prayers.maghrib),
+        PrayerItem("العشاء", prayers.isha)
+    )
+}
+
+private fun formatPrayerTime(date: Date): String {
+    val formatter = SimpleDateFormat("HH:mm", Locale.US)
+    formatter.timeZone = TimeZone.getTimeZone("Africa/Tripoli")
+    return formatter.format(date)
+}
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             RafiqHome()
         }
@@ -35,8 +88,10 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun RafiqHome() {
-    val page = remember { mutableStateOf("الرئيسية") }
-    val count = remember { mutableIntStateOf(0) }
+    var page by rememberSaveable { mutableStateOf("الرئيسية") }
+    var count by rememberSaveable { mutableIntStateOf(0) }
+
+    val prayers = remember { calculateTripoliPrayers() }
 
     MaterialTheme {
         Surface(
@@ -74,17 +129,18 @@ fun RafiqHome() {
                         .fillMaxWidth()
                         .verticalScroll(rememberScrollState())
                 ) {
-                    if (page.value == "الرئيسية") {
+                    if (page == "الرئيسية") {
                         HomePage(
-                            onOpen = { page.value = it }
+                            prayers = prayers,
+                            onOpen = { page = it }
                         )
                     } else {
                         SectionPage(
-                            page = page.value,
-                            count = count.intValue,
-                            onBack = { page.value = "الرئيسية" },
-                            onIncrease = { count.intValue++ },
-                            onReset = { count.intValue = 0 }
+                            page = page,
+                            count = count,
+                            onBack = { page = "الرئيسية" },
+                            onIncrease = { count++ },
+                            onReset = { count = 0 }
                         )
                     }
                 }
@@ -104,7 +160,10 @@ fun RafiqHome() {
 }
 
 @Composable
-fun HomePage(onOpen: (String) -> Unit) {
+fun HomePage(
+    prayers: List<PrayerItem>,
+    onOpen: (String) -> Unit
+) {
     Text(
         text = "السلام عليكم ورحمة الله",
         color = Cream,
@@ -119,6 +178,56 @@ fun HomePage(onOpen: (String) -> Unit) {
         color = Cream,
         fontSize = 14.sp
     )
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Cream)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "مواقيت الصلاة - طرابلس",
+                color = Emerald,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = "حساب رابطة العالم الإسلامي",
+                color = LightGreen,
+                fontSize = 13.sp
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            prayers.forEach { prayer ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 7.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = prayer.name,
+                        color = Emerald,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Text(
+                        text = formatPrayerTime(prayer.time),
+                        color = LightGreen,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                HorizontalDivider(color = Color.LightGray)
+            }
+        }
+    }
 
     Spacer(modifier = Modifier.height(18.dp))
 
@@ -166,97 +275,52 @@ fun HomePage(onOpen: (String) -> Unit) {
 
     Spacer(modifier = Modifier.height(10.dp))
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        FeatureCard(
-            title = "مواقيت الصلاة",
-            subtitle = "الصلوات الخمس",
-            modifier = Modifier.weight(1f)
-        ) { onOpen("مواقيت الصلاة") }
+    val rows = listOf(
+        listOf("مواقيت الصلاة", "القبلة"),
+        listOf("القرآن الكريم", "الأذكار"),
+        listOf("المسبحة", "الإعدادات")
+    )
 
-        FeatureCard(
-            title = "القبلة",
-            subtitle = "اتجاه الكعبة",
-            modifier = Modifier.weight(1f)
-        ) { onOpen("القبلة") }
-    }
-
-    Spacer(modifier = Modifier.height(10.dp))
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        FeatureCard(
-            title = "القرآن الكريم",
-            subtitle = "السور والآيات",
-            modifier = Modifier.weight(1f)
-        ) { onOpen("القرآن الكريم") }
-
-        FeatureCard(
-            title = "الأذكار",
-            subtitle = "أذكار المسلم",
-            modifier = Modifier.weight(1f)
-        ) { onOpen("الأذكار") }
-    }
-
-    Spacer(modifier = Modifier.height(10.dp))
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        FeatureCard(
-            title = "المسبحة",
-            subtitle = "عداد التسبيح",
-            modifier = Modifier.weight(1f)
-        ) { onOpen("المسبحة") }
-
-        FeatureCard(
-            title = "الإعدادات",
-            subtitle = "تخصيص التطبيق",
-            modifier = Modifier.weight(1f)
-        ) { onOpen("الإعدادات") }
+    rows.forEach { row ->
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            row.forEach { item ->
+                FeatureCard(
+                    title = item,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    onOpen(item)
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(10.dp))
     }
 }
 
 @Composable
 fun FeatureCard(
     title: String,
-    subtitle: String,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     Card(
         modifier = modifier
-            .height(112.dp)
+            .height(100.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = Cream)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
             Text(
                 text = title,
                 color = Emerald,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Text(
-                text = subtitle,
-                color = LightGreen,
-                fontSize = 12.sp,
                 textAlign = TextAlign.Center
             )
         }
@@ -330,44 +394,18 @@ fun SectionPage(
                 }
 
                 "مواقيت الصلاة" -> {
-                    SectionMessage(
-                        "مواقيت الصلاة",
-                        "سيتم إضافة الصلوات الخمس واختيار المدن الليبية وحساب الوقت المتبقي للصلاة القادمة."
-                    )
-                }
-
-                "القبلة" -> {
-                    SectionMessage(
-                        "اتجاه القبلة",
-                        "سيتم إضافة تحديد اتجاه الكعبة باستخدام موقع الهاتف والبوصلة."
-                    )
-                }
-
-                "القرآن الكريم" -> {
-                    SectionMessage(
-                        "القرآن الكريم",
-                        "سيتم إضافة السور والآيات والقراءة والاستماع وحفظ آخر موضع وصلت إليه."
-                    )
-                }
-
-                "الأذكار" -> {
-                    SectionMessage(
-                        "الأذكار",
-                        "سيتم إضافة أذكار الصباح والمساء وأذكار ما بعد الصلاة."
-                    )
-                }
-
-                "الإعدادات" -> {
-                    SectionMessage(
-                        "الإعدادات",
-                        "سيتم إضافة اختيار المدينة وطريقة حساب المواقيت وإعدادات الأذان والتنبيهات والمظهر."
+                    Text(
+                        text = "مواقيت الصلاة تظهر في الصفحة الرئيسية.",
+                        color = Emerald,
+                        textAlign = TextAlign.Center
                     )
                 }
 
                 else -> {
-                    SectionMessage(
-                        page,
-                        "هذا القسم قيد التطوير."
+                    Text(
+                        text = "هذا القسم سنكمل برمجته في الخطوات القادمة.",
+                        color = Emerald,
+                        textAlign = TextAlign.Center
                     )
                 }
             }
@@ -386,31 +424,4 @@ fun SectionPage(
     ) {
         Text("العودة للرئيسية")
     }
-}
-
-@Composable
-fun SectionMessage(title: String, message: String) {
-    Text(
-        text = title,
-        color = Emerald,
-        fontSize = 21.sp,
-        fontWeight = FontWeight.Bold
-    )
-
-    Spacer(modifier = Modifier.height(12.dp))
-
-    Text(
-        text = message,
-        color = Emerald,
-        fontSize = 15.sp,
-        textAlign = TextAlign.Center
-    )
-
-    Spacer(modifier = Modifier.height(10.dp))
-
-    Text(
-        text = "هذا القسم لم تكتمل برمجته بعد.",
-        color = LightGreen,
-        fontSize = 13.sp
-    )
 }
